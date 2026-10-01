@@ -3,7 +3,7 @@ import numpy as np
 import math
 from itertools import product
 import pyqif as pyq
-import privacybook.strategy as strategy
+from . import strategy
 
 def compose(C, D):
     '''Constructs the perturbation channel corresponding to the composition of
