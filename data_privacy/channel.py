@@ -29,6 +29,9 @@ def kroneckerN(C, n):
     Kn = pd.DataFrame(ChN, index=idx, columns=idx)
     return Kn
 
+def _as_tuple(x):
+    return x if isinstance(x, tuple) else (x,)
+
 def kronecker(C, D):
     '''Computes the Kronecker product of channel C with channel D.'''
     # Use underlying pyqif library to kronecker the channel
@@ -37,18 +40,18 @@ def kronecker(C, D):
     CD = pyq.compose.kronecker(Ch, Ch2)
 
     # Compute cartesian product of labels
-    row_states = list(product(C.index, D.index))
-    col_states = list(product(C.columns, D.columns))
+    row_states = [
+        _as_tuple(c) + _as_tuple(d)
+        for c, d in product(C.index, D.index)
+    ]
 
-    row_idx = pd.MultiIndex.from_tuples(
-        row_states,
-        names=["X1", "X2"]
-    )
+    col_states = [
+        _as_tuple(c) + _as_tuple(d)
+        for c, d in product(C.columns, D.columns)
+    ]
 
-    col_idx = pd.MultiIndex.from_tuples(
-        col_states,
-        names=["Z1", "Z2"]
-    )
+    row_idx = pd.MultiIndex.from_tuples(row_states)
+    col_idx = pd.MultiIndex.from_tuples(col_states)
 
     # Put channel back together with labels
     K = pd.DataFrame(CD, index=row_idx, columns=col_idx)
