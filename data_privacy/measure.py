@@ -8,7 +8,7 @@ def quasi_identification_risk(D):
     u = pyq.probab.uniform(c.shape[0])
 
     # Return average risk across all individuals
-    return pyq.measure.vg.posterior_bayes(u, c)
+    return pyq.measure.bayes.posterior(u, c)
 
 #
 # This function computes the bayes capacity of the channel, which is the
@@ -20,8 +20,6 @@ def reidentification_risk(D):
     attack (guessing the secret exactly in 1 try). Ranges from 1 (no leak) to #columns in
     channel (full leakage)'''
     return quasi_identification_risk(D)
-    #ch = D.to_numpy()
-    #return pyq.measure.bayes_capacity(ch)
 
 #
 # Computes the posterior vulnerability of the attribute with respect to 
@@ -37,7 +35,7 @@ def property_inference_risk(D, attr):
     # by computing their mean (equivalent to uniform prior)
     D_by_attr = D.groupby(level=[attr_i]).mean()
     u = pyq.probab.uniform(D_by_attr.shape[0])
-    return pyq.measure.vg.posterior_bayes(u, D_by_attr.to_numpy())
+    return pyq.measure.bayes.posterior(u, D_by_attr.to_numpy())
 
 # 
 # Computes the risk of guessing the secret given knowledge of the attributes
@@ -98,4 +96,34 @@ def likely_interval(D, attr, c):
     bits_arr = np.array( [ [ int(i<c) for i in row] for row in dists_arr])
     avg_uncertainty = pyq.measure.ul.posterior(pyq.probab.uniform(len(values)), D.to_numpy(), bits_arr)
     return avg_uncertainty
+
+def bayes_total_mse(C, pi, q, n):
+ '''
+    Computes the MSE of the Bayesian estimate of the total statistic.
+
+    Inputs:
+      - C[x, z] is a dataframe representing the channel
+      - pi[x] is the analyst's prior over true states x
+      - q[x] is the contribution of state x to the statistic
+      - pi is equal to the empirical distribution of the dataset
+    '''
+
+    p_z = pi @ C
+
+    # a(z) = E[g(X) | Z=z]
+    weighted = C.mul(pi, axis=0).mul(q, axis=0)
+    a = weighted.sum(axis=0) / p_z
+
+    # Error for each true x and possible observed z:
+    # e(x,z) = a(z) - g(x)
+    errors = pd.DataFrame(
+        a.to_numpy()[None, :] - q.to_numpy()[:, None],
+        index=C.index,
+        columns=C.columns
+    )
+    b = (C * errors).sum(axis=1)
+    m = (C * (errors**2)).sum(axis=1)
+    n_x = n * pi
+    mse = (n_x * (m - (b**2))).sum()
+    return float(mse)
 
