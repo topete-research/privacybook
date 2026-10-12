@@ -1,6 +1,7 @@
 from scipy.spatial.distance import pdist, squareform
 import pyqif as pyq
 import numpy as np
+import pandas as pd
 
 def quasi_identification_risk(D):
     # Pre: D is a dataframe
