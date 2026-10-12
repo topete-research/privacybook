@@ -98,32 +98,30 @@ def likely_interval(D, attr, c):
     return avg_uncertainty
 
 def bayes_total_mse(C, pi, q, n):
- '''
-    Computes the MSE of the Bayesian estimate of the total statistic.
-
+ '''Computes the MSE of the Bayesian estimate of the total statistic.
     Inputs:
       - C[x, z] is a dataframe representing the channel
       - pi[x] is the analyst's prior over true states x
       - q[x] is the contribution of state x to the statistic
       - pi is equal to the empirical distribution of the dataset
-    '''
+  '''
 
-    p_z = pi @ C
-
-    # a(z) = E[g(X) | Z=z]
-    weighted = C.mul(pi, axis=0).mul(q, axis=0)
-    a = weighted.sum(axis=0) / p_z
-
-    # Error for each true x and possible observed z:
-    # e(x,z) = a(z) - g(x)
-    errors = pd.DataFrame(
-        a.to_numpy()[None, :] - q.to_numpy()[:, None],
-        index=C.index,
-        columns=C.columns
-    )
-    b = (C * errors).sum(axis=1)
-    m = (C * (errors**2)).sum(axis=1)
-    n_x = n * pi
-    mse = (n_x * (m - (b**2))).sum()
-    return float(mse)
+  p_z = pi @ C
+  
+  # a(z) = E[g(X) | Z=z]
+  weighted = C.mul(pi, axis=0).mul(q, axis=0)
+  a = weighted.sum(axis=0) / p_z
+  
+  # Error for each true x and possible observed z:
+  # e(x,z) = a(z) - g(x)
+  errors = pd.DataFrame(
+      a.to_numpy()[None, :] - q.to_numpy()[:, None],
+      index=C.index,
+      columns=C.columns
+  )
+  b = (C * errors).sum(axis=1)
+  m = (C * (errors**2)).sum(axis=1)
+  n_x = n * pi
+  mse = (n_x * (m - (b**2))).sum()
+  return float(mse)
 
