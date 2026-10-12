@@ -29,6 +29,31 @@ def kroneckerN(C, n):
     Kn = pd.DataFrame(ChN, index=idx, columns=idx)
     return Kn
 
+def kronecker(C, D):
+    '''Computes the Kronecker product of channel C with channel D.'''
+    # Use underlying pyqif library to kronecker the channel
+    Ch = C.to_numpy()
+    Ch2 = D.to_numpy()
+    CD = pyq.compose.kronecker(Ch, Ch2)
+
+    # Compute cartesian product of labels
+    row_states = list(product(C.index, D.index))
+    col_states = list(product(C.columns, D.columns))
+
+    row_idx = pd.MultiIndex.from_tuples(
+        row_states,
+        names=["X1", "X2"]
+    )
+
+    col_idx = pd.MultiIndex.from_tuples(
+        col_states,
+        names=["Z1", "Z2"]
+    )
+
+    # Put channel back together with labels
+    K = pd.DataFrame(CD, index=row_idx, columns=col_idx)
+    return K
+
 def inputs_at_risk(C):
     '''
     Returns the row indices of the channel C for which the secrets can be identified completely.
