@@ -21,10 +21,7 @@ def kroneckerN(C, n):
 
     # Compute cartesian product of labels
     states = list(product(C.index, repeat=n))
-    idx = pd.MultiIndex.from_tuples(
-        states,
-        names=[f"X{i+1}" for i in range(n)]
-    )
+    idx = pd.MultiIndex.from_tuples(states)
     # Put channel back together with labels
     Kn = pd.DataFrame(ChN, index=idx, columns=idx)
     return Kn
